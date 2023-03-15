@@ -10,22 +10,19 @@ namespace Player
 {
     public class GameManager : MonoBehaviour
     {
-        public Button toggleTurnButton;
-        public bool isPlayerTurn = false;
 
         PlayersBase activePlayer;
+        
         public int index;
         public List<PlayersBase> playersList = new List<PlayersBase> { new PlayersBase { playerId = "Player1", playerType = PlayersBase.PlayerTypes.user } };
 
         public bool noUnitsLeft;
 
         public GameStats gameStats;
-        public PlayerUI playerUI;
-
+        PlayerUI playerUI;
         void Start()
         {
             playerUI = PlayerUI.GetInstance();
-            toggleTurnButton.onClick.AddListener(TogglePlayerTurn);
             activePlayer = playersList[0];
 
             gameStats.turnNumber = 0;
@@ -36,12 +33,6 @@ namespace Player
         void Update()
         {
 
-        }
-
-        public void TogglePlayerTurn()
-        {
-            isPlayerTurn = !isPlayerTurn;
-            Debug.Log("Player Turn: " + isPlayerTurn);
         }
 
         public bool CompareIDwithActivePlayer(string id)

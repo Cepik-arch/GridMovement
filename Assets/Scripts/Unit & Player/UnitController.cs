@@ -59,6 +59,9 @@ namespace UnitControl
                 {
                     states.nManager.holdPath = false;
                     states.nManager.hasMovingPath = false;
+                    shortPath.Clear();
+                    currentPath.Clear();
+
                 }
             }
 
@@ -159,11 +162,9 @@ namespace UnitControl
             int z = Mathf.CeilToInt(nodePose.z);
 
             Node node = grid.GetNode(x, y, z);
-            node.isWalkable = false;
-            node.unitOnNode = states;
-            node.nodeRef.ChangeTileMaterial(NodeReferences.TileType.red);
 
             transform.position = node.worldObject.transform.position;
+            StoreRefNode(node);
         }
         
         Node prevNode;

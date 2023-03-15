@@ -41,9 +41,11 @@ namespace UnitControl
             uiHolder = uiGO.GetComponent<UnitUIHolder>();
             uiHolder.transform.SetParent(PlayerUI.GetInstance().transform);
 
+            /*
             GameObject indicator = Instantiate(unitSelectIndicatorPrefab, transform.position, Quaternion.identity);
             unitSelectIndicator = indicator;
             unitSelectIndicator.transform.parent = this.transform;
+            */
         }
 
         public void Update()
@@ -55,12 +57,12 @@ namespace UnitControl
                 Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(Camera.main, transform.position);
                 uiHolder.transform.position = screenPoint;
 
-                unitSelectIndicator.SetActive(true);
+                //unitSelectIndicator.SetActive(true);
 
             }
             else
             {
-                unitSelectIndicator.SetActive(false);
+                //unitSelectIndicator.SetActive(false);
                 EnableDisableUnitUI(false);
             }
         }

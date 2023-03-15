@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using WorldUI;
-using System;
 
 namespace UnitControl
 {
     public class UnitNodeManager : MonoBehaviour
     {
         UnitStates states;
-        GridBase grid;
 
         public bool holdPath;
         public bool hasMovingPath;
-
-        int distanceFromMain;
 
         List<WorldUIManager.MovementNodes> movementNodes = new List<WorldUIManager.MovementNodes>();
         public List<Node> basicMoveNodes = new List<Node>();
@@ -27,9 +23,6 @@ namespace UnitControl
         {
             states = GetComponent<UnitStates>();
             states.nManager = this;
-
-            Assert.IsNotNull(GridBase.GetInstance(), "Missing Singleton!");
-            grid = GridBase.GetInstance();
 
             Assert.IsNotNull(WorldUIManager.GetInstance(), "Missing Singleton!");
             wUI = WorldUIManager.GetInstance();
@@ -43,24 +36,40 @@ namespace UnitControl
                     ClearListOfNodes();
                     movementNodes = wUI.FindAvailableNodes(states);
 
-                    for (int i = 0; i < movementNodes.Count; i++)
+                    if (states.actions > 0)
                     {
-                        if (movementNodes[i].distance < states.stats.basicMoveDistance)
+                        // actions = number of AP
+                        switch (states.actions)
                         {
-                            basicMoveNodes.Add(movementNodes[i].nodeActual);
-                            wUI.UpdateNodeStatus(movementNodes[i].nodeActual, NodeReferences.TileType.blue);
-                        }
-                        else
-                        {
-                            doubleMoveNodes.Add(movementNodes[i].nodeActual);
-                            wUI.UpdateNodeStatus(movementNodes[i].nodeActual, NodeReferences.TileType.yellow);
+                            case 1:
+                                for (int i = 0; i < movementNodes.Count; i++)
+                                {
+                                    if (movementNodes[i].distance < states.stats.basicMoveDistance)
+                                    {
+                                        PopulateListOfNodes(doubleMoveNodes, movementNodes[i].nodeActual, NodeReferences.TileType.yellow); 
+                                    }
+                                }
+                                break;
+                            case 2: 
+                                for (int i = 0; i < movementNodes.Count; i++)
+                                {
+                                    if (movementNodes[i].distance < states.stats.basicMoveDistance)
+                                    {
+                                        PopulateListOfNodes(basicMoveNodes, movementNodes[i].nodeActual, NodeReferences.TileType.blue);
+                                    }
+                                    else
+                                    {
+                                        PopulateListOfNodes(doubleMoveNodes, movementNodes[i].nodeActual, NodeReferences.TileType.yellow);
+                                    }
+                                }
+                                break;
                         }
                     }
                     hasMovingPath = true;
                 }
                 if (holdPath)
                 {
-                    if (movementNodes.Count>0)
+                    if (movementNodes.Count > 0)
                     {
                         wUI.ClearNodeList();
                         movementNodes.Clear();
@@ -82,6 +91,12 @@ namespace UnitControl
             movementNodes.Clear();
             basicMoveNodes.Clear();
             doubleMoveNodes.Clear();
+        }
+
+        private void PopulateListOfNodes(List<Node> nodes,Node n, NodeReferences.TileType type)
+        {
+            nodes.Add(n);
+            wUI.UpdateListNodesStatus(nodes, type);
         }
     }
 }

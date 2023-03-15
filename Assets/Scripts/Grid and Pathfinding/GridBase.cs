@@ -296,7 +296,7 @@ namespace GridMaster
         }
 
 
-        //Singleton
+        #region Singleton
         public static GridBase instance;
         void Awake()
         {
@@ -311,6 +311,7 @@ namespace GridMaster
 
             return instance;
         }
+        #endregion
 
     }
 }
