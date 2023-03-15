@@ -10,7 +10,7 @@ namespace UnitControl
     {
         public UnitStates states;
         GridBase grid;
-        public Vector3 startingPosition; //hardcoded
+        public Vector3 startingPosition;
 
         public Node currentNode;
 
@@ -42,26 +42,6 @@ namespace UnitControl
 
         public void Update()
         {
-            /*
-            if (grid == null)
-            {
-                states = GetComponent<UnitStates>();
-                states.controller = this;
-                grid = GridBase.GetInstance();
-                PlaceOnNodeImmediate(startingPosition);
-                currentNode = grid.GetNodeFromVector3(startingPosition);
-            }
-            */
-
-            if (states.selected)
-            {
-                if (Input.GetKeyUp(KeyCode.Space))
-                {
-                    if (!movePath)
-                        movePath = true;
-                }
-            }
-
             states.move = movePath;
 
             // if unit has movepath, it will move
@@ -79,6 +59,9 @@ namespace UnitControl
                 {
                     states.nManager.holdPath = false;
                     states.nManager.hasMovingPath = false;
+                    shortPath.Clear();
+                    currentPath.Clear();
+
                 }
             }
 
@@ -179,11 +162,9 @@ namespace UnitControl
             int z = Mathf.CeilToInt(nodePose.z);
 
             Node node = grid.GetNode(x, y, z);
-            node.isWalkable = false;
-            node.unitOnNode = states;
-            node.nodeRef.ChangeTileMaterial(NodeReferences.TileType.red);
 
             transform.position = node.worldObject.transform.position;
+            StoreRefNode(node);
         }
         
         Node prevNode;

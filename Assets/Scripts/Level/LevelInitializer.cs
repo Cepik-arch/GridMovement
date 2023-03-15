@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using Player;
+using UnityEngine.SocialPlatforms;
 
 namespace LevelControl
 {
@@ -11,6 +13,7 @@ namespace LevelControl
 
         public int unitCount = 1;
         public GameObject unitPrefab;
+        GameManager gameManager;
 
         private WaitForEndOfFrame waitEF;
 
@@ -32,6 +35,8 @@ namespace LevelControl
 
         void Start()
         {
+            gameManager = GameManager.GetInstance();
+
             waitEF = new WaitForEndOfFrame();
             StartCoroutine("InitLevel");
         }
@@ -54,6 +59,7 @@ namespace LevelControl
 
         IEnumerator CreateUnits()
         {
+            /*
             for (int i = 0; i < unitCount; i++)
             {
                 GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
@@ -61,6 +67,27 @@ namespace LevelControl
                 uc.startingPosition.x += i * 2;
             }
             yield return waitEF;
+            */
+
+            for(int p =0; p < gameManager.playersList.Count; p++)
+            {
+                for (int u = 0; u < gameManager.playersList[p].playerUnits; u++)
+                {
+                    GameObject go = Instantiate(gameManager.playersList[p].unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                    UnitControl.UnitController uc = go.GetComponent<UnitControl.UnitController>();
+
+                    uc.startingPosition = gameManager.playersList[p].startingPos[u];
+
+                    UnitControl.UnitStates uStates = go.GetComponent<UnitControl.UnitStates>();
+
+                    uStates.playerID = gameManager.playersList[p].playerId;
+
+                    gameManager.playersList[p].allUnits.Add(uStates);
+                }
+            }
+
+            yield return waitEF;
+
         }
 
         IEnumerator EnablePlayerInteractions()

@@ -12,18 +12,18 @@ namespace WorldUI
     {
         GridBase grid = null;
 
-
         void Start()
         {
-            Assert.IsNotNull(GridBase.GetInstance(), "Missing Singleton!");
             grid = GridBase.GetInstance();
+            Assert.IsNotNull(GridBase.GetInstance(), "Missing Singleton!");
         }
         void Update()
         {
         }
 
-        List<MovementNodes> movementNodes;
+        List<MovementNodes> movementNodes = new List<MovementNodes>();
 
+        #region Path Visualization
         public void UpdateNodeStatus(Node node, NodeReferences.TileType target)
         {
             node.nodeRef.ChangeTileMaterial(target);
@@ -56,7 +56,7 @@ namespace WorldUI
                 {
                     for (int z = -dist; z <= dist; z++)
                     {
-                        
+
                         int y = yTmp;
                         if (!isNextVertical)
                         {
@@ -127,9 +127,9 @@ namespace WorldUI
         [Serializable]
         public class MovementNodes : IEquatable<MovementNodes>
         {
-            public Node nodeActual;
+            public Node nodeActual; 
 
-            public int distance;
+            public int distance; 
 
             public bool Equals(MovementNodes obj)
             {
@@ -139,19 +139,26 @@ namespace WorldUI
             }
         }
 
-        //Singleton
-        public static WorldUIManager instance;
-        void Awake()
-        {
-            instance = this;
-            Debug.Log(instance.ToString());
-            DontDestroyOnLoad(gameObject);
-        }
+        #endregion
 
+        #region Singleton
+        private static WorldUIManager instance = null;
         public static WorldUIManager GetInstance()
         {
-
             return instance;
         }
+        private void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+        #endregion
+
     }
 }

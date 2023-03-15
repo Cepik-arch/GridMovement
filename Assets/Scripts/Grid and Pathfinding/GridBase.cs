@@ -263,7 +263,40 @@ namespace GridMaster
             }
         }
 
-        //Singleton
+        public List<Node> GetNeighbours(Node node)
+        {
+            List<Node> neighbours = new List<Node>();
+
+            // Check all 26 adjacent nodes (including diagonals)
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
+                {
+                    for (int z = -1; z <= 1; z++)
+                    {
+                        if (x == 0 && y == 0 && z == 0)
+                        {
+                            continue; // Skip the current node
+                        }
+
+                        int checkX = node.x + x;
+                        int checkY = node.y + y;
+                        int checkZ = node.z + z;
+
+                        // Check if the adjacent node is within the grid bounds
+                        if (checkX >= 0 && checkX < maxX && checkY >= 0 && checkY < maxY && checkZ >= 0 && checkZ < maxZ)
+                        {
+                            neighbours.Add(grid[checkX, checkY, checkZ]);
+                        }
+                    }
+                }
+            }
+
+            return neighbours;
+        }
+
+
+        #region Singleton
         public static GridBase instance;
         void Awake()
         {
@@ -278,6 +311,7 @@ namespace GridMaster
 
             return instance;
         }
+        #endregion
 
     }
 }
