@@ -10,7 +10,7 @@ namespace UnitControl
     {
         public UnitStates states;
         GridBase grid;
-        public Vector3 startingPosition; //hardcoded
+        public Vector3 startingPosition;
 
         public Node currentNode;
 
@@ -42,26 +42,6 @@ namespace UnitControl
 
         public void Update()
         {
-            /*
-            if (grid == null)
-            {
-                states = GetComponent<UnitStates>();
-                states.controller = this;
-                grid = GridBase.GetInstance();
-                PlaceOnNodeImmediate(startingPosition);
-                currentNode = grid.GetNodeFromVector3(startingPosition);
-            }
-            */
-
-            if (states.selected)
-            {
-                if (Input.GetKeyUp(KeyCode.Space))
-                {
-                    if (!movePath)
-                        movePath = true;
-                }
-            }
-
             states.move = movePath;
 
             // if unit has movepath, it will move

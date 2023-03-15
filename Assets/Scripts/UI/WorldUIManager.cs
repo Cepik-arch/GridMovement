@@ -56,7 +56,7 @@ namespace WorldUI
                 {
                     for (int z = -dist; z <= dist; z++)
                     {
-                        
+
                         int y = yTmp;
                         if (!isNextVertical)
                         {

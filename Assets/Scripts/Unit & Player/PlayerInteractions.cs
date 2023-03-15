@@ -13,6 +13,7 @@ namespace Player
 
         public UnitController activeUnit;
 
+        public bool moveUnit;
         public bool hasPath;
         public bool holdPath;
 
@@ -22,12 +23,16 @@ namespace Player
         WorldUIManager wUIManager;
 
         Node prevNode;
+        Node startNode;
+        Node targetNode;
 
         public bool visualizePath;
         public GameObject lineGO;
         LineRenderer line;
-        Node startNode;
-        Node targetNode;
+
+        public GameObject moveIndicatorPrefav;
+        GameObject moveIndicator;
+
 
         public void Start()
         {
@@ -39,21 +44,19 @@ namespace Player
             gameManager = GameManager.GetInstance();
             Assert.IsNotNull(WorldUIManager.GetInstance(), "Missing Singleton!");
             wUIManager = WorldUIManager.GetInstance();
+
+            moveIndicator = Instantiate(moveIndicatorPrefav, transform.position, Quaternion.identity) as GameObject;
+            DisableMoveIndicator();
         }
 
         void Update()
-        {   /*
-            if (grid == null && pathFinder == null)
-            {
-                grid = GridBase.GetInstance();
-                pathFinder = PathfindMaster.GetInstance();
-                gameManager = GameManager.GetInstance();
-                wUIManager = WorldUIManager.GetInstance();
-            }
-            */
+        {
             FindUnit();
+            VisualizePath();
             MoveUnit();
+            UnitActualMovement();
         }
+
         void FindUnit()
         {
             if (!activeUnit)
@@ -70,14 +73,14 @@ namespace Player
                             {
                                 activeUnit = node.unitOnNode.controller;
                                 activeUnit.states.selected = true;
-                                //activeUnit.states.currentNode = node; // moje
                             }
                         }
                     }
                 }
             }
+
         }
-        void MoveUnit()
+        private void MoveUnit()
         {
             if (activeUnit && !activeUnit.states.move)
             {
@@ -100,8 +103,11 @@ namespace Player
                         {
                             pathFinder.RequestPathfind(startNode, targetNode, PopulatePathOfActiveUnit);
                             prevNode = targetNode;
+
+                            //calculate move AP cost
+                            activeUnit.states.currentMoveCost = (activeUnit.states.nManager.doubleMoveNodes.Contains(targetNode)) ? 2 : 1;
+
                             hasPath = true;
-                            //Debug.Log(targetNode.x.ToString() + " " + targetNode.y.ToString() + " " + targetNode.z.ToString());
                         }
                     }
                 }
@@ -109,22 +115,25 @@ namespace Player
                 if (Input.GetMouseButtonUp(0))
                 {
                     targetNode = FindNodeFromMousePosition();
-                    if (targetNode.unitOnNode == null)
+                    if (targetNode != null)
                     {
-                        holdPath = !holdPath;
-                    }
-                    else
-                    {
-                        if (gameManager.CompareIDwithActivePlayer(targetNode.unitOnNode.playerID))
+                        if (targetNode.unitOnNode == null)
                         {
-                            if (targetNode.unitOnNode.controller != activeUnit)
+                            holdPath = !holdPath;
+                        }
+                        else
+                        {
+                            if (gameManager.CompareIDwithActivePlayer(targetNode.unitOnNode.playerID))
                             {
-                                wUIManager.ClearNodeList();
-                                activeUnit.states.selected = false;
-                                activeUnit.states.nManager.hasMovingPath = false;
-                                activeUnit = targetNode.unitOnNode.controller;
-                                activeUnit.states.selected = true;
-                                activeUnit.states.nManager.hasMovingPath = false;
+                                if (targetNode.unitOnNode.controller != activeUnit)
+                                {
+                                    wUIManager.ClearNodeList();
+                                    activeUnit.states.selected = false;
+                                    activeUnit.states.nManager.hasMovingPath = false;
+                                    activeUnit = targetNode.unitOnNode.controller;
+                                    activeUnit.states.selected = true;
+                                    activeUnit.states.nManager.hasMovingPath = false;
+                                }
                             }
                         }
                     }
@@ -133,26 +142,110 @@ namespace Player
 
                 if (activeUnit.shortPath.Count < 1)
                     holdPath = false;
-
-                if (visualizePath)
-                {
-                    if (line == null)
-                    {
-                        GameObject go = Instantiate(lineGO, transform.position, Quaternion.identity) as GameObject;
-                        line = go.GetComponent<LineRenderer>();
-                    }
-                    else
-                    {
-                        line.positionCount = activeUnit.shortPath.Count;
-
-                        for (int i = 0; i < activeUnit.shortPath.Count; i++)
-                        {
-                            line.SetPosition(i, activeUnit.shortPath[i].worldObject.transform.position);
-                        }
-                    }
-                }
             }
         }
+
+        private void UnitActualMovement()
+        {
+            if (activeUnit && activeUnit.states.selected && moveUnit)
+            {
+                if (activeUnit.states.actions > 0)
+                {
+                    if (!activeUnit.movePath)
+                    {
+                        activeUnit.movePath = true;
+                        holdPath = false;
+                        DisableMoveIndicator();
+
+                        //reduce AP from unit
+                        activeUnit.states.UpdateActionPoints(activeUnit.states.actions - activeUnit.states.currentMoveCost);
+                    }
+                }
+                moveUnit = false;
+            }
+        }
+
+        private void VisualizePath()
+        {
+            if (line == null)
+            {
+                GameObject go = Instantiate(lineGO, transform.position, Quaternion.identity) as GameObject;
+                line = go.GetComponent<LineRenderer>();
+            }
+
+            visualizePath = ControlVisualizationOfPath();
+
+            if (visualizePath)
+            {
+                line.gameObject.SetActive(true);
+                line.positionCount = activeUnit.shortPath.Count;
+
+                for (int i = 0; i < activeUnit.shortPath.Count; i++)
+                {
+                    line.SetPosition(i, activeUnit.shortPath[i].worldObject.transform.position);
+                }
+
+                if(activeUnit.shortPath.Count > 0)
+                {
+                    EnableMoveIndicator(activeUnit.shortPath[activeUnit.shortPath.Count - 1].worldObject.transform.position);
+                }
+                else
+                {
+                    line.gameObject.SetActive(false);
+                    DisableMoveIndicator();
+                }
+
+            }
+            else
+            {
+                line.gameObject.SetActive(false);
+                DisableMoveIndicator();
+            }
+        }
+
+        private bool ControlVisualizationOfPath()
+        {
+            bool retVal = true;
+
+            if (activeUnit == null)
+            {
+                retVal = false;
+            }
+            else
+            {
+                if (activeUnit.movePath)
+                    retVal = false;
+            }
+            return retVal;
+        }
+
+        public void ChangeActiveUnit(UnitController targetUnit)
+        {
+            wUIManager.ClearNodeList();
+
+            if (activeUnit != null)
+            {
+                activeUnit.states.selected = false;
+                activeUnit.states.nManager.hasMovingPath = false;
+            }
+
+            activeUnit = targetUnit;
+            activeUnit.states.selected = true;
+            activeUnit.states.nManager.hasMovingPath = false;
+        }
+
+        public void ClearActiveUnit()
+        {
+            if (activeUnit != null)
+            {
+                wUIManager.ClearNodeList();
+
+                activeUnit.states.selected = false;
+                activeUnit.states.nManager.hasMovingPath = false;
+                activeUnit = null;
+            }
+        }
+
         public void PopulatePathOfActiveUnit(List<Node> nodes)
         {
             activeUnit.currentPath.Clear();
@@ -185,5 +278,37 @@ namespace Player
             return retVal;
         }
 
+        public void DisableMoveIndicator()
+        {
+            moveIndicator.SetActive(false);
+            visualizePath = false;
+        }
+
+        public void EnableMoveIndicator(Vector3 targetPos)
+        {
+            moveIndicator.transform.position = targetPos;
+            moveIndicator.SetActive(true);
+        }
+
+        #region Singleton
+        public static PlayerInteractions instance;
+        public static PlayerInteractions GetInstance()
+        {
+            return instance;
+        }
+
+        private void Awake()
+        {
+            if (instance != null && instance != this)
+            {
+                Destroy(this.gameObject);
+            }
+            else
+            {
+                instance = this;
+            }
+
+        }
+        #endregion
     }
 }

@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using GridMaster;
 
-//for more on A* visit
-//https://en.wikipedia.org/wiki/A*_search_algorithm
 namespace Pathfinding
 {
     public class Pathfinder
