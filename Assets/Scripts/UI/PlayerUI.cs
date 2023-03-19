@@ -11,7 +11,7 @@ public class PlayerUI : MonoBehaviour
 
     public void UpdateCurrentPlayerProperty(string player, Color color)
     {
-        currentPlayer.text = turnNumber.text;
+        currentPlayer.text = currentPlayer.text;
         currentPlayer.color = color;
     }
 
