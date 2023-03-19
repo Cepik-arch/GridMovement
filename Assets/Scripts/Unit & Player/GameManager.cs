@@ -50,7 +50,7 @@ namespace Player
 
         public void ChangePlayer()
         {
-            if(index < playersList.Count)
+            if (index < playersList.Count - 1)
             {
                 index++;
             }
@@ -60,6 +60,7 @@ namespace Player
                 playerUI.UpdateTurnNumber(gameStats.turnNumber.ToString());
                 index = 0;
             }
+
             PlayerInteractions.GetInstance().ClearActiveUnit();
             activePlayer = playersList[index];
             playerUI.UpdateCurrentPlayerProperty(activePlayer.playerId, activePlayer.playerColor);
